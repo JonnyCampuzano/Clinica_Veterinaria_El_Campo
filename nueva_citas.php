@@ -14,16 +14,133 @@ if (!isset($_SESSION['usuario'])) {
 <html lang="es">
 
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>Nueva cita</title>
 
-    <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="dashboard.css?v=9">
 
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f3f7fc;
+            color: #0f172a;
+        }
+
+        .app {
+            display: flex;
+            width: 100%;
+            min-height: 100vh;
+        }
+
+        /* ==========================
+           BARRA LATERAL
+        ========================== */
+
+        .sidebar {
+            width: 288px;
+            min-width: 288px;
+            min-height: 100vh;
+            padding: 18px 0;
+            display: flex;
+            flex-direction: column;
+            background: #123e73;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 0 16px;
+            margin-bottom: 42px;
+        }
+
+        .logo-box {
+            width: 64px;
+            height: 64px;
+            min-width: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #3478f6;
+            border-radius: 18px;
+            font-size: 27px;
+        }
+
+        .sidebar-logo h2 {
+            margin: 0;
+            color: white;
+            font-size: 25px;
+            line-height: 1;
+            font-weight: 800;
+        }
+
+        .sidebar-logo p {
+            margin: 8px 0 0;
+            color: white;
+            font-size: 15px;
+        }
+
+        .sidebar nav {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 9px;
+        }
+
+        .sidebar nav a {
+            width: 100%;
+            min-height: 62px;
+            padding: 17px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            transition: background 0.2s ease;
+        }
+
+        .sidebar nav a:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar nav a.active {
+            background: #3478f6;
+            color: white;
+            border-radius: 18px;
+        }
+
+        .logout {
+            margin-top: auto;
+            padding: 20px 24px;
+            color: white;
+            text-decoration: none;
+            font-size: 17px;
+        }
+
+        .logout:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* ==========================
+           CONTENIDO
+        ========================== */
+
         .main-content {
             flex: 1;
+            min-width: 0;
             min-height: 100vh;
             padding: 30px;
             background: #f3f7fc;
@@ -34,6 +151,7 @@ if (!isset($_SESSION['usuario'])) {
             margin: auto;
             padding: 30px;
             background: white;
+            border: 1px solid #dce8f7;
             border-radius: 18px;
             box-shadow: 0 10px 25px rgba(0, 27, 61, 0.1);
         }
@@ -48,6 +166,7 @@ if (!isset($_SESSION['usuario'])) {
 
         .form-header h2 {
             margin: 0;
+            color: #0f172a;
         }
 
         .form-grupo {
@@ -64,18 +183,19 @@ if (!isset($_SESSION['usuario'])) {
         .form-grupo textarea,
         .form-grupo select {
             width: 100%;
-            padding: 12px;
+            padding: 12px 14px;
             border: 1px solid #cbd8e8;
             border-radius: 9px;
-            box-sizing: border-box;
+            font-family: Arial, sans-serif;
             font-size: 15px;
+            outline: none;
         }
 
         .form-grupo input:focus,
         .form-grupo textarea:focus,
         .form-grupo select:focus {
             border-color: #2563eb;
-            outline: none;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
         }
 
         .form-grupo textarea {
@@ -91,6 +211,7 @@ if (!isset($_SESSION['usuario'])) {
 
         .btn-volver,
         .btn-guardar {
+            display: inline-block;
             padding: 12px 18px;
             border: none;
             border-radius: 9px;
@@ -101,20 +222,64 @@ if (!isset($_SESSION['usuario'])) {
         }
 
         .btn-volver {
-            background: #64748b;
+            background: #2563eb;
+        }
+
+        .btn-volver:hover {
+            background: #1d4ed8;
         }
 
         .btn-guardar {
             width: 100%;
-            background: #2563eb;
+            background: #16a34a;
             font-size: 16px;
         }
 
         .btn-guardar:hover {
-            background: #1d4ed8;
+            background: #15803d;
         }
 
-        @media (max-width: 650px) {
+        @media (max-width: 800px) {
+            .sidebar {
+                width: 240px;
+                min-width: 240px;
+            }
+
+            .sidebar-logo h2 {
+                font-size: 21px;
+            }
+
+            .sidebar nav a {
+                padding: 15px 18px;
+                font-size: 16px;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .app {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                min-width: 100%;
+                min-height: auto;
+                padding-bottom: 20px;
+            }
+
+            .sidebar nav {
+                padding: 0 10px;
+            }
+
+            .sidebar nav a {
+                min-height: 52px;
+                border-radius: 12px;
+            }
+
+            .logout {
+                margin-top: 20px;
+            }
+
             .main-content {
                 padding: 15px;
             }
@@ -130,6 +295,7 @@ if (!isset($_SESSION['usuario'])) {
             }
         }
     </style>
+
 </head>
 
 <body>
@@ -139,23 +305,52 @@ if (!isset($_SESSION['usuario'])) {
     <aside class="sidebar">
 
         <div class="sidebar-logo">
-            <div class="logo-box">🐾</div>
+
+            <div class="logo-box">
+                🐾
+            </div>
 
             <div>
                 <h2>SISTEMA</h2>
                 <p>VETERINARIO</p>
             </div>
+
         </div>
 
         <nav>
-            <a href="dashboard.php">📊 Dashboard</a>
-            <a class="active" href="citas.php">📅 Citas</a>
-            <a href="mascotas.php">🐶 Mascotas</a>
-            <a href="historia_clinica.php">📋 Historia Clínica</a>
-            <a href="clientes.php">👥 Clientes</a>
-            <a href="inventario.php">📦 Inventario</a>
-            <a href="generar_reporte.php">📄 Reportes</a>
-            <a href="configuracion.php">⚙️ Configuración</a>
+
+            <a href="dashboard.php">
+                📊 Dashboard
+            </a>
+
+            <a class="active" href="citas.php">
+                🗓️ Citas
+            </a>
+
+            <a href="mascotas.php">
+                🐶 Mascotas
+            </a>
+
+            <a href="historia_clinica.php">
+                📋 Historia Clínica
+            </a>
+
+            <a href="clientes.php">
+                👥 Clientes
+            </a>
+
+            <a href="inventario.php">
+                📦 Inventario
+            </a>
+
+            <a href="generar_reporte.php">
+                📄 Reportes
+            </a>
+
+            <a href="configuracion.php">
+                ⚙️ Configuración
+            </a>
+
         </nav>
 
         <a class="logout" href="logout.php">
@@ -169,17 +364,28 @@ if (!isset($_SESSION['usuario'])) {
         <section class="formulario">
 
             <div class="form-header">
+
                 <h2>Registrar nueva cita</h2>
 
-                <a href="citas.php" class="btn-volver">
+                <a
+                    href="citas.php"
+                    class="btn-volver"
+                >
                     ← Volver
                 </a>
+
             </div>
 
-            <form action="guardar_citas.php" method="POST">
+            <form
+                action="guardar_citas.php"
+                method="POST"
+            >
 
                 <div class="form-grupo">
-                    <label for="paciente">Paciente o mascota</label>
+
+                    <label for="paciente">
+                        Paciente o mascota
+                    </label>
 
                     <input
                         type="text"
@@ -189,10 +395,14 @@ if (!isset($_SESSION['usuario'])) {
                         maxlength="100"
                         required
                     >
+
                 </div>
 
                 <div class="form-grupo">
-                    <label for="propietario">Propietario</label>
+
+                    <label for="propietario">
+                        Propietario
+                    </label>
 
                     <input
                         type="text"
@@ -202,12 +412,16 @@ if (!isset($_SESSION['usuario'])) {
                         maxlength="100"
                         required
                     >
+
                 </div>
 
                 <div class="fila">
 
                     <div class="form-grupo">
-                        <label for="fecha">Fecha</label>
+
+                        <label for="fecha">
+                            Fecha
+                        </label>
 
                         <input
                             type="date"
@@ -217,10 +431,14 @@ if (!isset($_SESSION['usuario'])) {
                             min="<?= date('Y-m-d') ?>"
                             required
                         >
+
                     </div>
 
                     <div class="form-grupo">
-                        <label for="hora">Hora</label>
+
+                        <label for="hora">
+                            Hora
+                        </label>
 
                         <input
                             type="time"
@@ -228,12 +446,16 @@ if (!isset($_SESSION['usuario'])) {
                             name="hora"
                             required
                         >
+
                     </div>
 
                 </div>
 
                 <div class="form-grupo">
-                    <label for="motivo">Motivo de la consulta</label>
+
+                    <label for="motivo">
+                        Motivo de la consulta
+                    </label>
 
                     <textarea
                         id="motivo"
@@ -242,19 +464,39 @@ if (!isset($_SESSION['usuario'])) {
                         maxlength="500"
                         required
                     ></textarea>
+
                 </div>
 
                 <div class="form-grupo">
-                    <label for="estado">Estado</label>
 
-                    <select id="estado" name="estado" required>
-                        <option value="Pendiente">Pendiente</option>
-                        <option value="Confirmada">Confirmada</option>
-                        <option value="Cancelada">Cancelada</option>
+                    <label for="estado">
+                        Estado
+                    </label>
+
+                    <select
+                        id="estado"
+                        name="estado"
+                        required
+                    >
+                        <option value="Pendiente">
+                            Pendiente
+                        </option>
+
+                        <option value="Confirmada">
+                            Confirmada
+                        </option>
+
+                        <option value="Cancelada">
+                            Cancelada
+                        </option>
                     </select>
+
                 </div>
 
-                <button type="submit" class="btn-guardar">
+                <button
+                    type="submit"
+                    class="btn-guardar"
+                >
                     💾 Guardar cita
                 </button>
 
@@ -267,4 +509,5 @@ if (!isset($_SESSION['usuario'])) {
 </div>
 
 </body>
+
 </html>
