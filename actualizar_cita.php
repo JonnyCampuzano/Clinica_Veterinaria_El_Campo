@@ -1,65 +1,71 @@
 <?php
-session_start();
 
-require_once __DIR__ . "/../config/conexion.php";
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
-if (!isset($_SESSION["usuario"])) {
-    header("Location: ../login.php");
+// Usa esta ruta si conexion.php está dentro de database
+require_once __DIR__ . '/database/conexion.php';
+
+if (!isset($_SESSION['usuario'])) {
+    header('Location: login.php');
     exit;
 }
 
-if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-    header("Location: citas.php");
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header('Location: citas.php');
     exit;
 }
 
-$id = (int) ($_POST["id"] ?? 0);
-$paciente = trim($_POST["paciente"] ?? "");
-$propietario = trim($_POST["propietario"] ?? "");
-$fecha = trim($_POST["fecha"] ?? "");
-$hora = trim($_POST["hora"] ?? "");
-$motivo = trim($_POST["motivo"] ?? "");
-$estado = trim($_POST["estado"] ?? "");
+// Recibir datos
+$id          = (int) ($_POST['id'] ?? 0);
+$paciente    = trim($_POST['paciente'] ?? '');
+$propietario = trim($_POST['propietario'] ?? '');
+$fecha       = trim($_POST['fecha'] ?? '');
+$hora        = trim($_POST['hora'] ?? '');
+$motivo      = trim($_POST['motivo'] ?? '');
+$estado      = trim($_POST['estado'] ?? '');
 
-$estadosPermitidos = [
-    "Pendiente",
-    "Confirmada",
-    "Cancelada"
-];
-
+// Validar campos
 if (
     $id <= 0 ||
-    $paciente === "" ||
-    $propietario === "" ||
-    $fecha === "" ||
-    $hora === "" ||
-    $motivo === "" ||
-    $estado === ""
+    in_array('', [
+        $paciente,
+        $propietario,
+        $fecha,
+        $hora,
+        $motivo,
+        $estado
+    ], true)
 ) {
-    die("Error: todos los campos son obligatorios.");
+    die('Error: todos los campos son obligatorios.');
 }
+
+// Validar estado
+$estadosPermitidos = ['Pendiente', 'Confirmada', 'Cancelada'];
 
 if (!in_array($estado, $estadosPermitidos, true)) {
-    die("Error: el estado seleccionado no es válido.");
+    die('Error: el estado seleccionado no es válido.');
 }
 
-$consulta = $conexion->prepare(
-    "UPDATE citas
-     SET paciente = ?,
-         propietario = ?,
-         fecha = ?,
-         hora = ?,
-         motivo = ?,
-         estado = ?
-     WHERE id = ?"
-);
+// Actualizar cita
+$sql = "UPDATE citas
+        SET paciente = ?,
+            propietario = ?,
+            fecha = ?,
+            hora = ?,
+            motivo = ?,
+            estado = ?
+        WHERE id = ?";
+
+$consulta = $conexion->prepare($sql);
 
 if (!$consulta) {
-    die("Error al preparar la actualización: " . $conexion->error);
+    die('Error al preparar la consulta: ' . $conexion->error);
 }
 
 $consulta->bind_param(
-    "ssssssi",
+    'ssssssi',
     $paciente,
     $propietario,
     $fecha,
@@ -69,9 +75,12 @@ $consulta->bind_param(
     $id
 );
 
-if ($consulta->execute()) {
-    header("Location: citas.php?mensaje=actualizada");
-    exit;
+if (!$consulta->execute()) {
+    die('Error al actualizar la cita: ' . $consulta->error);
 }
 
-die("Error al actualizar la cita: " . $consulta->error);
+$consulta->close();
+$conexion->close();
+
+header('Location: citas.php?mensaje=actualizada');
+exit;

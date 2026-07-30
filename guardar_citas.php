@@ -1,58 +1,63 @@
 <?php
-session_start();
 
-require_once __DIR__ . "/../config/conexion.php";
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
-if (!isset($_SESSION["usuario"])) {
-    header("Location: ../login.php");
+require_once __DIR__ . '/database/conexion.php';
+
+if (!isset($_SESSION['usuario'])) {
+    header('Location: login.php');
     exit;
 }
 
-if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-    header("Location: nueva_citas.php");
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header('Location: nueva_citas.php');
     exit;
 }
 
-$paciente = trim($_POST["paciente"] ?? "");
-$propietario = trim($_POST["propietario"] ?? "");
-$fecha = trim($_POST["fecha"] ?? "");
-$hora = trim($_POST["hora"] ?? "");
-$motivo = trim($_POST["motivo"] ?? "");
-$estado = trim($_POST["estado"] ?? "");
+$paciente    = trim($_POST['paciente'] ?? '');
+$propietario = trim($_POST['propietario'] ?? '');
+$fecha       = trim($_POST['fecha'] ?? '');
+$hora        = trim($_POST['hora'] ?? '');
+$motivo      = trim($_POST['motivo'] ?? '');
+$estado      = trim($_POST['estado'] ?? '');
 
-$estadosPermitidos = [
-    "Pendiente",
-    "Confirmada",
-    "Cancelada"
+$campos = [
+    $paciente,
+    $propietario,
+    $fecha,
+    $hora,
+    $motivo,
+    $estado
 ];
 
-if (
-    $paciente === "" ||
-    $propietario === "" ||
-    $fecha === "" ||
-    $hora === "" ||
-    $motivo === "" ||
-    $estado === ""
-) {
-    die("Error: todos los campos son obligatorios.");
+if (in_array('', $campos, true)) {
+    die('Error: todos los campos son obligatorios.');
 }
+
+$estadosPermitidos = [
+    'Pendiente',
+    'Confirmada',
+    'Cancelada'
+];
 
 if (!in_array($estado, $estadosPermitidos, true)) {
-    die("Error: el estado seleccionado no es válido.");
+    die('Error: estado no válido.');
 }
 
-$consulta = $conexion->prepare(
-    "INSERT INTO citas
-    (paciente, propietario, fecha, hora, motivo, estado)
-    VALUES (?, ?, ?, ?, ?, ?)"
-);
+$sql = 'INSERT INTO citas
+        (paciente, propietario, fecha, hora, motivo, estado)
+        VALUES (?, ?, ?, ?, ?, ?)';
+
+$consulta = $conexion->prepare($sql);
 
 if (!$consulta) {
-    die("Error al preparar la consulta: " . $conexion->error);
+    die('Error en la consulta: ' . $conexion->error);
 }
 
 $consulta->bind_param(
-    "ssssss",
+    'ssssss',
     $paciente,
     $propietario,
     $fecha,
@@ -61,9 +66,11 @@ $consulta->bind_param(
     $estado
 );
 
-if ($consulta->execute()) {
-    header("Location: citas.php?mensaje=registrada");
-    exit;
+if (!$consulta->execute()) {
+    die('Error al guardar la cita: ' . $consulta->error);
 }
 
-die("Error al guardar la cita: " . $consulta->error);
+$consulta->close();
+
+header('Location: citas.php?mensaje=registrada');
+exit;

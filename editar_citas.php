@@ -1,39 +1,48 @@
 <?php
-session_start();
 
-require_once __DIR__ . "/../config/conexion.php";
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
-if (!isset($_SESSION["usuario"])) {
-    header("Location: ../login.php");
+require_once __DIR__ . '/database/conexion.php';
+
+if (!isset($_SESSION['usuario'])) {
+    header('Location: login.php');
     exit;
 }
 
-$id = (int) ($_GET["id"] ?? 0);
+$id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 
-if ($id <= 0) {
-    header("Location: citas.php");
+if (!$id) {
+    header('Location: citas.php');
     exit;
 }
 
 $consulta = $conexion->prepare(
-    "SELECT id, paciente, propietario, fecha, hora, motivo, estado
+    'SELECT id, paciente, propietario, fecha, hora, motivo, estado
      FROM citas
-     WHERE id = ?"
+     WHERE id = ?'
 );
 
 if (!$consulta) {
-    die("Error al preparar la consulta: " . $conexion->error);
+    die('Error en la consulta: ' . $conexion->error);
 }
 
-$consulta->bind_param("i", $id);
+$consulta->bind_param('i', $id);
 $consulta->execute();
 
-$resultado = $consulta->get_result();
-$cita = $resultado->fetch_assoc();
+$cita = $consulta->get_result()->fetch_assoc();
 
 if (!$cita) {
-    header("Location: citas.php");
+    header('Location: citas.php');
     exit;
+}
+
+$estados = ['Pendiente', 'Confirmada', 'Cancelada'];
+
+function escapar($valor): string
+{
+    return htmlspecialchars((string) $valor, ENT_QUOTES, 'UTF-8');
 }
 ?>
 
@@ -42,41 +51,36 @@ if (!$cita) {
 
 <head>
     <meta charset="UTF-8">
-
     <meta
         name="viewport"
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>Editar Cita</title>
+    <title>Editar cita</title>
 
-    <link
-        rel="stylesheet"
-        href="../assets/css/style.css"
-    >
+    <link rel="stylesheet" href="dashboard.css">
 
     <style>
         .main-content {
             flex: 1;
-            padding: 25px;
+            min-height: 100vh;
+            padding: 30px;
             background: #f3f7fc;
         }
 
         .formulario {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 28px;
+            max-width: 650px;
+            margin: auto;
+            padding: 30px;
             background: white;
-            border: 1px solid #dce8f7;
             border-radius: 18px;
-            box-shadow: 0 10px 25px rgba(0, 27, 61, 0.08);
+            box-shadow: 0 10px 25px rgba(0, 27, 61, 0.1);
         }
 
         .form-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 15px;
             margin-bottom: 25px;
         }
 
@@ -84,17 +88,8 @@ if (!$cita) {
             margin: 0;
         }
 
-        .btn-volver {
-            padding: 11px 17px;
-            background: #2563eb;
-            color: white;
-            border-radius: 10px;
-            text-decoration: none;
-            font-weight: bold;
-        }
-
         .form-grupo {
-            margin-bottom: 16px;
+            margin-bottom: 17px;
         }
 
         .form-grupo label {
@@ -104,19 +99,18 @@ if (!$cita) {
         }
 
         .form-grupo input,
-        .form-grupo select,
-        .form-grupo textarea {
+        .form-grupo textarea,
+        .form-grupo select {
             width: 100%;
-            padding: 12px 14px;
+            padding: 12px;
             border: 1px solid #cbd8e8;
-            border-radius: 10px;
+            border-radius: 9px;
             box-sizing: border-box;
             font-size: 15px;
-            outline: none;
         }
 
         .form-grupo textarea {
-            min-height: 90px;
+            min-height: 100px;
             resize: vertical;
         }
 
@@ -126,16 +120,25 @@ if (!$cita) {
             gap: 15px;
         }
 
+        .btn-volver,
+        .btn-actualizar {
+            padding: 12px 18px;
+            border: none;
+            border-radius: 9px;
+            color: white;
+            font-weight: bold;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .btn-volver {
+            background: #2563eb;
+        }
+
         .btn-actualizar {
             width: 100%;
-            padding: 13px;
             background: #16a34a;
-            color: white;
-            border: none;
-            border-radius: 10px;
             font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
         }
 
         .btn-actualizar:hover {
@@ -143,13 +146,19 @@ if (!$cita) {
         }
 
         @media (max-width: 650px) {
+            .main-content {
+                padding: 15px;
+            }
+
             .fila {
                 grid-template-columns: 1fr;
+                gap: 0;
             }
 
             .form-header {
-                flex-direction: column;
                 align-items: flex-start;
+                flex-direction: column;
+                gap: 15px;
             }
         }
     </style>
@@ -162,26 +171,28 @@ if (!$cita) {
     <aside class="sidebar">
 
         <div class="sidebar-logo">
+
             <div class="logo-box">🐾</div>
 
             <div>
                 <h2>SISTEMA</h2>
                 <p>VETERINARIO</p>
             </div>
+
         </div>
 
         <nav>
-            <a href="../dashboard.php">📊 Dashboard</a>
+            <a href="dashboard.php">📊 Dashboard</a>
             <a class="active" href="citas.php">📅 Citas</a>
-            <a href="../mascotas.php">🐶 Mascotas</a>
-            <a href="../historia_clinica.php">📋 Historia Clínica</a>
-            <a href="../clientes.php">👥 Clientes</a>
-            <a href="../inventario.php">📦 Inventario</a>
-            <a href="../reportes.php">📄 Reportes</a>
-            <a href="../configuracion.php">⚙️ Configuración</a>
+            <a href="mascotas.php">🐶 Mascotas</a>
+            <a href="historia_clinica.php">📋 Historia Clínica</a>
+            <a href="clientes.php">👥 Clientes</a>
+            <a href="inventario.php">📦 Inventario</a>
+            <a href="generar_reporte.php">📄 Reportes</a>
+            <a href="configuracion.php">⚙️ Configuración</a>
         </nav>
 
-        <a class="logout" href="../logout.php">
+        <a class="logout" href="logout.php">
             ↩ Cerrar sesión
         </a>
 
@@ -193,7 +204,7 @@ if (!$cita) {
 
             <div class="form-header">
 
-                <h2>Editar Cita</h2>
+                <h2>Editar cita</h2>
 
                 <a class="btn-volver" href="citas.php">
                     ← Volver
@@ -201,28 +212,23 @@ if (!$cita) {
 
             </div>
 
-            <form
-                action="actualizar_citas.php"
-                method="POST"
-            >
+            <form action="actualizar_cita.php" method="POST">
 
                 <input
                     type="hidden"
                     name="id"
-                    value="<?= (int) $cita["id"] ?>"
+                    value="<?= (int) $cita['id'] ?>"
                 >
 
                 <div class="form-grupo">
 
-                    <label for="paciente">
-                        Paciente o mascota
-                    </label>
+                    <label for="paciente">Paciente o mascota</label>
 
                     <input
                         type="text"
                         id="paciente"
                         name="paciente"
-                        value="<?= htmlspecialchars($cita["paciente"]) ?>"
+                        value="<?= escapar($cita['paciente']) ?>"
                         required
                     >
 
@@ -230,15 +236,13 @@ if (!$cita) {
 
                 <div class="form-grupo">
 
-                    <label for="propietario">
-                        Propietario
-                    </label>
+                    <label for="propietario">Propietario</label>
 
                     <input
                         type="text"
                         id="propietario"
                         name="propietario"
-                        value="<?= htmlspecialchars($cita["propietario"]) ?>"
+                        value="<?= escapar($cita['propietario']) ?>"
                         required
                     >
 
@@ -248,15 +252,13 @@ if (!$cita) {
 
                     <div class="form-grupo">
 
-                        <label for="fecha">
-                            Fecha
-                        </label>
+                        <label for="fecha">Fecha</label>
 
                         <input
                             type="date"
                             id="fecha"
                             name="fecha"
-                            value="<?= htmlspecialchars($cita["fecha"]) ?>"
+                            value="<?= escapar($cita['fecha']) ?>"
                             required
                         >
 
@@ -264,15 +266,13 @@ if (!$cita) {
 
                     <div class="form-grupo">
 
-                        <label for="hora">
-                            Hora
-                        </label>
+                        <label for="hora">Hora</label>
 
                         <input
                             type="time"
                             id="hora"
                             name="hora"
-                            value="<?= htmlspecialchars(substr($cita["hora"], 0, 5)) ?>"
+                            value="<?= escapar(substr($cita['hora'], 0, 5)) ?>"
                             required
                         >
 
@@ -282,60 +282,39 @@ if (!$cita) {
 
                 <div class="form-grupo">
 
-                    <label for="motivo">
-                        Motivo de la consulta
-                    </label>
+                    <label for="motivo">Motivo de la consulta</label>
 
                     <textarea
                         id="motivo"
                         name="motivo"
                         required
-                    ><?= htmlspecialchars($cita["motivo"]) ?></textarea>
+                    ><?= escapar($cita['motivo']) ?></textarea>
 
                 </div>
 
                 <div class="form-grupo">
 
-                    <label for="estado">
-                        Estado
-                    </label>
+                    <label for="estado">Estado</label>
 
-                    <select
-                        id="estado"
-                        name="estado"
-                        required
-                    >
+                    <select id="estado" name="estado" required>
 
-                        <option
-                            value="Pendiente"
-                            <?= $cita["estado"] === "Pendiente" ? "selected" : "" ?>
-                        >
-                            Pendiente
-                        </option>
+                        <?php foreach ($estados as $estado): ?>
 
-                        <option
-                            value="Confirmada"
-                            <?= $cita["estado"] === "Confirmada" ? "selected" : "" ?>
-                        >
-                            Confirmada
-                        </option>
+                            <option
+                                value="<?= escapar($estado) ?>"
+                                <?= $cita['estado'] === $estado ? 'selected' : '' ?>
+                            >
+                                <?= escapar($estado) ?>
+                            </option>
 
-                        <option
-                            value="Cancelada"
-                            <?= $cita["estado"] === "Cancelada" ? "selected" : "" ?>
-                        >
-                            Cancelada
-                        </option>
+                        <?php endforeach; ?>
 
                     </select>
 
                 </div>
 
-                <button
-                    type="submit"
-                    class="btn-actualizar"
-                >
-                    🔄 Actualizar Cita
+                <button type="submit" class="btn-actualizar">
+                    🔄 Actualizar cita
                 </button>
 
             </form>
